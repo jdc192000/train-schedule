@@ -1,4 +1,5 @@
 // Initialize Firebase
+
 var config = {
   apiKey: "AIzaSyB1GJt6R1I5CELlsBXWifJoHL7o4EcIq7Y",
   authDomain: "train-activity-91d44.firebaseapp.com",
@@ -11,74 +12,79 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
-// 2. Button for adding trains
-// $("#add-train-btn").on("click", function (event) {
-
 function addTrain() {
+
   event.preventDefault();
 
   var trainName = $("#train-name-input").val().trim();
   var trainDest = $("#dest-input").val().trim();
-  var trainStart = moment($("#start-input").val().trim(), "DD/MM/YY").format("X");
+  var firstTime = $("#start-input").val().trim();
   var trainFreq = $("#freq-input").val().trim();
+
+  // var trainStartTime = moment($("#start-input").val().trim(), "DD/MM/YY").format("X");
+
+  var firstTimeConverted = moment(firstTime, "HH:mm").subtract(1, "years");
+  console.log("first time: " + firstTimeConverted);
+
+  var currentTime = moment();
+  console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
+
+  var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+  console.log("DIFFERENCE IN TIME: " + diffTime);
+
+  var tRemainder = diffTime % trainFreq;
+  console.log(tRemainder);
+
+  // Minute Until Train
+  var tMinutesTillTrain = trainFreq - tRemainder;
+  console.log("MINUTES TILL TRAIN: " + tMinutesTillTrain);
+
+  var tNext = moment().add(tMinutesTillTrain, "minutes");
+  console.log("ARRIVAL TIME: " + moment(tNext).format("hh:mm"));
+
+  var trainNext = moment().format("hh:mm");
+  console.log(trainNext);
+  // var trainStartTime = moment($("#start-input"), "HH:mm").subtract(1, "years");
+
+
+  console.log("train name: " + trainName);
+  console.log("train dest: " + trainDest);
+  console.log("train freq: " + trainFreq);
+  console.log("train next: " + trainNext);
+
 
   var newTrain = {
     name: trainName,
     dest: trainDest,
-    start: trainStart,
-    freq: trainFreq
+    freq: trainFreq,
+    next: trainNext
   };
 
-  // Uploads train data to the database
-  database.ref().push(newEmp);
+  database.ref().push(newTrain);
 
-  // Logs everything to console
   console.log(newTrain.name);
   console.log(newTrain.dest);
-  console.log(newTrain.start);
+  console.log(newTrain.next);
   console.log(newTrain.freq);
+  console.log("==============");
 
-  // Alert
-  alert("train successfully added");
-
-  // Clears all of the text-boxes
   $("#train-name-input").val("");
   $("#dest-input").val("");
   $("#start-input").val("");
   $("#freq-input").val("");
-// });
+
 };
 
-// 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
-database.ref().on("child_added", function (childSnapshot, prevChildKey) {
+database.ref().on("child_added", function(childSnapshot, prevChildKey) {
 
   console.log(childSnapshot.val());
 
   // Store everything into a variable.
   var trainName = childSnapshot.val().name;
-  var empdest = childSnapshot.val().dest;
-  var empStart = childSnapshot.val().start;
-  var empRate = childSnapshot.val().rate;
+  var trainDest = childSnapshot.val().dest;
+  var trainFreq = childSnapshot.val().freq;
+  var trainNext = childSnapshot.val().next;
 
-  // train Info
-  console.log(trainName);
-  console.log(empdest);
-  console.log(empStart);
-  console.log(empRate);
-
-  // Prettify the train start
-  var empStartPretty = moment.unix(empStart).format("MM/DD/YY");
-
-  // Calculate the months worked using hardcore math
-  // To calculate the months worked
-  var empMonths = moment().diff(moment.unix(empStart, "X"), "months");
-  console.log(empMonths);
-
-  // Calculate the total billed rate
-  var empBilled = empMonths * empRate;
-  console.log(empBilled);
-
-  // Add each train's data into the table
-  $("#train-table > tbody").append("<tr><td>" + trainName + "</td><td>" + empdest + "</td><td>" +
-    empStartPretty + "</td><td>" + empMonths + "</td><td>" + empRate + "</td><td>" + empBilled + "</td></tr>");
+  $("#train-table > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDest + "</td><td>" +
+  trainFreq + "</td><td>" + trainNext + "</td>");
 });
